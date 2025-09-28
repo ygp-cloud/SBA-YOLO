@@ -1,0 +1,55 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLOv8-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/tasks/segment
+
+# Parameters
+nc: 14  # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolov8n-seg.yaml' will call yolov8-seg.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 768]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.25, 512]
+
+# YOLOv8.0n backbone
+backbone:
+  # [from, repeats, module, args]
+  # [from:本层的来源，-1表示将上一层的输出作为本层的输入，
+  # repeats：本层的重复次数,
+  # module：本层的名称,
+  # args：本层的参数]
+
+  - [-1, 1, Conv, [64, 3, 2]]                  #0
+  - [-1, 1, Conv, [128, 3, 2]]                 #1
+  - [-1, 3, C2f, [128, True]]                  #2
+  - [-1, 1, Conv, [256, 3, 2]]                 #3
+  - [-1, 6, C2f, [256, True]]                  #4
+  - [-1, 1, Conv, [512, 3, 2]]                 #5
+  - [-1, 6, C2f, [512, True]]                  #6
+  - [-1, 1, Conv, [1024, 3, 2]]                #7
+  - [-1, 3, C2f, [1024, True]]                 #8
+  - [-1, 1, SPPFCSPC, [1024, 5]]               #9
+head:
+  - [[2, 9], 1, BEM, [512]]                    #10
+  - [[10, 9], 1, BFM, [1024]]                  #11
+  - [[10, 6], 1, BFM, [512]]                   #12
+  - [[10, 4], 1, BFM, [256]]                   #13
+
+  - [11, 1, nn.Upsample, [None, 2, 'nearest']] #14
+  - [[-1, 12], 1, Concat, [1]]                 #15
+  - [-1, 3, C2f, [512]]                        #16
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] #17
+  - [[-1, 13], 1, Concat, [1]]                 #18
+  - [-1, 3, C2f, [256]]                        #19
+
+  - [-1, 1, Conv, [256, 3, 2]]                 #20
+  - [[-1, 16], 1, Concat, [1]]                 #21
+  - [-1, 3, C2f, [512]]                        #22
+
+  - [-1, 1, Conv, [512, 3, 2]]                 #23
+  - [[-1, 11], 1, Concat, [1]]                 #24
+  - [-1, 3, C2f, [1024]]                       #25
+
+  - [[19, 22, 25], 1, Segment, [nc, 32, 256]]
+
