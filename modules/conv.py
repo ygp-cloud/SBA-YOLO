@@ -30,8 +30,8 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
 
 class Conv(nn.Module):
     """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation).
-    标准卷积的参数有（输入通道数，输出通道数，卷积核大小，步长，填充，分组数，空洞卷积，激活函数）"""
-    default_act = nn.SiLU()  # default activation 设置的卷积函数为SiLU
+    """
+    default_act = nn.SiLU() 
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         """Initialize Conv layer with given arguments including activation."""
@@ -518,12 +518,7 @@ class InjectionMultiSum_Auto_pool(nn.Module):
         B, C, H, W = x_l.shape
         g_B, g_C, g_H, g_W = x_g.shape
         use_pool = H < g_H
-        '''
-        x_g按照self.global_inp的值在列方向上进行切割，从切割的结果中选择索引为self.flag的部分赋给gloabl_info得到全局信息
-        对全局特征图x_l进行local_embedding得到局部特征local_feat
-        对全局信息gloabl_info索引为self.flag的部分进行卷积得到global_act
-        对全局信息
-        '''
+      
         gloabl_info = x_g.split(self.global_inp, dim=1)[self.flag]
         local_feat = self.local_embedding(x_l)
         global_act = self.global_act(gloabl_info)
@@ -724,10 +719,6 @@ class AdvPoolFusion(nn.Module):
         return out
 
 
-#  结束
-
-
-#  增加RFB
 class BasicConv(nn.Module):
     def __init__(self, in_planes, out_planes, kernel_size, stride=1, padding=0, dilation=1, groups=1, relu=True):
         super(BasicConv, self).__init__()
@@ -790,9 +781,7 @@ class BasicRFB(nn.Module):
         return out
 
 
-#  结束
 
-#  增加注意力机制
 #  ChannelAttention
 class ChannelAttention(nn.Module):
     """Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet."""
@@ -1025,4 +1014,4 @@ class MAM(nn.Module):
         out = x * x_spatial_att
 
         return out
-#  结束
+
