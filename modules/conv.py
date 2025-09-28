@@ -264,8 +264,6 @@ class Concat(nn.Module):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
 
-
-# 增加GOLD-YOLO
 def conv_bn(in_channels, out_channels, kernel_size, stride, padding, groups=1, bias=False):
     '''Basic cell for rep-style block, including conv and bn'''
     result = nn.Sequential()
