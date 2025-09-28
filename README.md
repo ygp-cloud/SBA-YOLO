@@ -1,5 +1,7 @@
 # SBA-YOLO
+
 This repository contains the code and data associated with our paper titled “ Multi-scale clothing image instance segmentation method based on improved YOLOv8-seg.”
+
 ---
 ## The main research content includes
 YOLOv8-seg is achieved by modifying the Head network structure of YOLOv8. Based on this, this study proposes the following three optimizations:
