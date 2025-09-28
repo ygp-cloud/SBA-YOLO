@@ -29,13 +29,13 @@ class Detect(nn.Module):
 
     def __init__(self, nc=80, ch=()):  # detection layer
         super().__init__()
-        self.nc = nc  # 类别数量nc=14
-        self.nl = len(ch)  # 表示检测模型中使用的检测层数nl=3
-        self.reg_max = 16  # 每个锚点输出的通道数
-        self.no = nc + self.reg_max * 4  # 每个锚点的输出数量，其中包括类别信息和位置信息no=14+64=78
-        self.stride = torch.zeros(self.nl)  # 检测每个检测层的步长
+        self.nc = nc 
+        self.nl = len(ch) 
+        self.reg_max = 16  
+        self.no = nc + self.reg_max * 4 
+        self.stride = torch.zeros(self.nl)  
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))
-        # cv2用于预测每个锚点的位置信息，cv3用于预测每个锚点的类别信息
+      
 
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
@@ -50,7 +50,7 @@ class Detect(nn.Module):
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):
-        """连接并返回预测的边界框和类概率"""
+      
         shape = x[0].shape
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
