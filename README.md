@@ -17,7 +17,8 @@ my computer platform Ubuntu 20.04
 All models were tested under a unified experimental environment and conditions.
 ---
 ## Datasets
-The experiment was conducted based on the Modanet 、DeepFashion2 dataset.
+ The experiment was conducted based on the Modanet 、DeepFashion2 dataset.
+ 
 ---
 ## Experimental Design
 ### 1. Qualitative Experiment
