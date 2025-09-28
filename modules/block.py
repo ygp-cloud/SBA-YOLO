@@ -23,9 +23,7 @@ __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', '
 
 
 class DFL(nn.Module):
-    """
-    Distribution Focal Loss(DFL)在Generalized Focal Loss中提出  https://ieeexplore.ieee.org/document/9792391
-    """
+   
 
     def __init__(self, c1=16):
         """Initialize a convolutional layer with a given number of input channels."""
@@ -129,21 +127,18 @@ class SPPF(nn.Module):
     def __init__(self, c1, c2, k=5):  # equivalent to SPP(k=(5, 9, 13))
         super().__init__()
         c_ = c1 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)  # 对应第一个CBL
-        self.cv2 = Conv(c_ * 4, c2, 1, 1)  # 对应第二个CBL
+        self.cv1 = Conv(c1, c_, 1, 1)  
+        self.cv2 = Conv(c_ * 4, c2, 1, 1) 
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
-        # 对应核心操作，对5*5分块，在子图中取最大值。
-
+      
     def forward(self, x):
         """Forward pass through Ghost Convolution block."""
-        x = self.cv1(x)  # 第一个CBL，通道数减半
-        y1 = self.m(x)  # 5*5分块，取最大值
-        y2 = self.m(y1)  # 9*9分块，取最大值
+        x = self.cv1(x)  
+        y1 = self.m(x)  
+        y2 = self.m(y1) 
         out = self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
         return out
-        # self.m(y2)是13*13分块，取最大值
-        # 将4个输入concat，输入：x+y1+y2+self.m(y2)
-        # 进行第二个CBL
+       
 
 
 class C1(nn.Module):
@@ -318,7 +313,6 @@ class BottleneckCSP(nn.Module):
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
 
 
-#  增加swin-transformer模块
 def drop_path_f(x, drop_prob: float = 0., training: bool = False):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
     This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
@@ -351,7 +345,6 @@ class DropPath(nn.Module):
 
 def window_partition(x, window_size: int):
     """
-    将feature map按照window_size划分成一个个没有重叠的window
     Args:
         x: (B, H, W, C)
         window_size (int): window size(M)
@@ -368,7 +361,7 @@ def window_partition(x, window_size: int):
 
 def window_reverse(windows, window_size: int, H: int, W: int):
     """
-    将一个个window还原成一个feature map
+  
     Args:
         windows: (num_windows*B, window_size, window_size, C)
         window_size (int): Window size(M)
@@ -552,7 +545,7 @@ class SwinTransformerBlock(nn.Module):
         x = x.view(B, H, W, C)
 
         # pad feature maps to multiples of window size
-        # 把feature map给pad到window size的整数倍
+      
         pad_l = pad_t = 0
         pad_r = (self.window_size - W % self.window_size) % self.window_size
         pad_b = (self.window_size - H % self.window_size) % self.window_size
@@ -584,7 +577,7 @@ class SwinTransformerBlock(nn.Module):
             x = shifted_x
 
         if pad_r > 0 or pad_b > 0:
-            # 把前面pad的数据移除掉
+           
             x = x[:, :H, :W, :].contiguous()
 
         x = x.view(B, H * W, C)
@@ -642,10 +635,10 @@ class SwinStage(nn.Module):
 
     def create_mask(self, x, H, W):
         # calculate attention mask for SW-MSA
-        # 保证Hp和Wp是window_size的整数倍
+       
         Hp = int(np.ceil(H / self.window_size)) * self.window_size
         Wp = int(np.ceil(W / self.window_size)) * self.window_size
-        # 拥有和feature map一样的通道排列顺序，方便后续window_partition
+     
         img_mask = torch.zeros((1, Hp, Wp, 1), device=x.device)  # [1, Hp, Wp, 1]
         h_slices = (slice(0, -self.window_size),
                     slice(-self.window_size, -self.shift_size),
@@ -701,7 +694,7 @@ class PatchEmbed(nn.Module):
         _, _, H, W = x.shape
 
         # padding
-        # 如果输入图片的H，W不是patch_size的整数倍，需要进行padding
+    
         pad_input = (H % self.patch_size[0] != 0) or (W % self.patch_size[1] != 0)
         if pad_input:
             # to pad the last 3 dimensions,
@@ -710,7 +703,6 @@ class PatchEmbed(nn.Module):
                           0, self.patch_size[0] - H % self.patch_size[0],
                           0, 0))
 
-        # 下采样patch_size倍
         x = self.proj(x)
         B, C, H, W = x.shape
         # flatten: [B, C, H, W] -> [B, C, HW]
@@ -748,12 +740,12 @@ class PatchMerging(nn.Module):
         # x = x.view(B, H*W, C)
 
         # padding
-        # 如果输入feature map的H，W不是2的整数倍，需要进行padding
+    
         pad_input = (H % 2 == 1) or (W % 2 == 1)
         if pad_input:
             # to pad the last 3 dimensions, starting from the last dimension and moving forward.
             # (C_front, C_back, W_left, W_right, H_top, H_bottom)
-            # 注意这里的Tensor通道是[B, H, W, C]，所以会和官方文档有些不同
+        
             x = F.pad(x, (0, 0, 0, W % 2, 0, H % 2))
 
         x0 = x[:, 0::2, 0::2, :]  # [B, H/2, W/2, C]
@@ -769,8 +761,6 @@ class PatchMerging(nn.Module):
         x = x.permute(0, 3, 1, 2).contiguous()
         return x
 
-
-#  增加SPPFCSPC模块
 class SPPFCSPC(nn.Module):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, k=5):
         super(SPPFCSPC, self).__init__()
@@ -793,8 +783,6 @@ class SPPFCSPC(nn.Module):
         out = self.cv7(torch.cat((y1, y2), dim=1))
         return out
 
-
-#  增加BRM模块
 class BasicConv(nn.Module):
     def __init__(self, in_planes, out_planes, kernel_size, stride=1, padding=0, dilation=1, groups=1, relu=True):
         super(BasicConv, self).__init__()
@@ -814,18 +802,18 @@ class PPM(nn.Module):
 
     def __init__(self, in_channels, out_channels, **kwargs):
         super(PPM, self).__init__()
-        inter_channels = int(in_channels / 4)  # 这里N=4与原文一致
-        self.conv1 = BasicConv(in_channels, inter_channels, 1, **kwargs)  # 四个1x1卷积用来减小channel为原来的1/N
+        inter_channels = int(in_channels / 4)  
+        self.conv1 = BasicConv(in_channels, inter_channels, 1, **kwargs)  
         self.conv2 = BasicConv(in_channels, inter_channels, 1, **kwargs)
         self.conv3 = BasicConv(in_channels, inter_channels, 1, **kwargs)
         self.conv4 = BasicConv(in_channels, inter_channels, 1, **kwargs)
-        self.out = BasicConv(in_channels * 2, out_channels, 1)  # 最后的1x1卷积缩小为原来的channel
+        self.out = BasicConv(in_channels * 2, out_channels, 1)  
 
     def pool(self, x, size):
-        avgpool = nn.AdaptiveAvgPool2d(size)  # 自适应的平均池化，目标size分别为1x1,2x2,3x3,6x6
+        avgpool = nn.AdaptiveAvgPool2d(size) 
         return avgpool(x)
 
-    def upsample(self, x, size):  # 上采样使用双线性插值
+    def upsample(self, x, size): 
         return F.interpolate(x, size, mode='bilinear', align_corners=True)
 
     def forward(self, x):
@@ -834,7 +822,7 @@ class PPM(nn.Module):
         feat2 = self.upsample(self.conv2(self.pool(x, 2)), size)
         feat3 = self.upsample(self.conv3(self.pool(x, 3)), size)
         feat4 = self.upsample(self.conv4(self.pool(x, 6)), size)
-        x = torch.cat([x, feat1, feat2, feat3, feat4], dim=1)  # concat 四个池化的结果
+        x = torch.cat([x, feat1, feat2, feat3, feat4], dim=1)  
         x = self.out(x)
         return x
 
@@ -872,7 +860,7 @@ class BFM(nn.Module):
         return self.cv1(x2)
 
 
-#  增加C2f_Pconv
+
 class PConv(nn.Module):
     def __init__(self, dim, ouc, n_div=4, forward='split_cat'):
         super().__init__()
